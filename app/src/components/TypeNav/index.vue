@@ -15,19 +15,19 @@
       </nav>
       <div class="sort">
         <div class="all-sort-list2">
-          <div class="item bo" v-for="c1 in categoryList" :key="c1.categoryId">
-            <h3>
-              <a href="">{{c1.categoryName}}</a>
+          <div class="item" v-for="(c1,index) in categoryList" :key="c1.categoryId" :class="{cur:currentIndex===index}">
+            <h3 @mouseenter="changeIndex(index)" @mouseleave="leaveIndex">
+              <a href="">{{ c1.categoryName }}</a>
             </h3>
-            <div class="item-list clearfix">
+            <div class="item-list clearfix" :style="{display:currentIndex===index?'block':'none'}">
               <div class="subitem" v-for="c2 in c1.categoryChild" :key="c2.categoryId">
                 <dl class="fore">
                   <dt>
-                    <a href="">{{c2.categoryName}}</a>
+                    <a href="">{{ c2.categoryName }}</a>
                   </dt>
                   <dd>
                     <em v-for="c3 in c2.categoryChild" :key="c3.categoryId">
-                      <a href="">{{c3.categoryName}}</a>
+                      <a href="">{{ c3.categoryName }}</a>
                     </em>
                   </dd>
                 </dl>
@@ -42,17 +42,39 @@
 
 <script>
 import {mapState} from "vuex";
+import throttle from "lodash/throttle";
 
 export default {
   name: "TypeNav",
+  data() {
+    return {
+      currentIndex: -1
+    };
+  },
   // 挂载完毕
   mounted() {
-    this.$store.dispatch('categoryList')
+    // 具有命名空间的写法, 需开启 namespaced:true,
+    this.$store.dispatch('Home/categoryList')
+    // 常规写法
+    // this.$store.dispatch('categoryList')
   },
   computed: {
-    ...mapState({
-      categoryList: state => state.Home.categoryList
-    })
+    // 具有命名空间的写法, 需开启 namespaced:true,
+    ...mapState('Home', ['categoryList']),
+    // 常规写法
+    // ...mapState({
+    //   categoryList: state => state.Home.categoryList
+    // })
+
+  },
+  methods: {
+    // 节流 lodash
+    changeIndex: throttle(function (index) {
+      this.currentIndex = index;
+    }, 50),
+    leaveIndex() {
+      this.currentIndex = -1;
+    }
   }
 }
 </script>
@@ -167,11 +189,16 @@ export default {
             }
           }
 
-          &:hover {
-            .item-list {
-              display: block;
-            }
-          }
+          //
+          //&:hover {
+          //  .item-list {
+          //    display: block;
+          //  }
+          //}
+        }
+
+        .cur {
+          background: skyblue;
         }
       }
     }
