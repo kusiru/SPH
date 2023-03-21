@@ -2,7 +2,45 @@
   <!-- 商品分类导航 -->
   <div class="type-nav">
     <div class="container">
-      <h2 class="all">全部商品分类</h2>
+      <div @mouseleave="leaveIndex" @mouseenter="enterShow">
+        <h2 class="all">全部商品分类</h2>
+        <!--过度动画-->
+        <Transition name="sort">
+          <div class="sort" v-show="show">
+            <div class="all-sort-list2" @click="goSearch">
+              <div class="item" v-for="(c1,index) in categoryList" :key="c1.categoryId"
+                   :class="{cur:currentIndex===index}">
+                <h3 @mouseenter="changeIndex(index)">
+                  <a :data-categoryName="c1.categoryName"
+                     :data-category1Id="c1.categoryId">
+                    {{ c1.categoryName }}
+                  </a>
+                </h3>
+                <div class="item-list clearfix" :style="{display:currentIndex===index?'block':'none'}">
+                  <div class="subitem" v-for="c2 in c1.categoryChild" :key="c2.categoryId">
+                    <dl class="fore">
+                      <dt>
+                        <a :data-categoryName="c2.categoryName"
+                           :data-category2Id="c2.categoryId">
+                          {{ c2.categoryName }}
+                        </a>
+                      </dt>
+                      <dd>
+                        <em v-for="c3 in c2.categoryChild" :key="c3.categoryId">
+                          <a :data-categoryName="c3.categoryName"
+                             :data-category3Id="c3.categoryId">
+                            {{ c3.categoryName }}
+                          </a>
+                        </em>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Transition>
+      </div>
       <nav class="nav">
         <a href="###">服装城</a>
         <a href="###">美妆馆</a>
@@ -13,29 +51,6 @@
         <a href="###">有趣</a>
         <a href="###">秒杀</a>
       </nav>
-      <div class="sort">
-        <div class="all-sort-list2">
-          <div class="item" v-for="(c1,index) in categoryList" :key="c1.categoryId" :class="{cur:currentIndex===index}">
-            <h3 @mouseenter="changeIndex(index)" @mouseleave="leaveIndex">
-              <a href="">{{ c1.categoryName }}</a>
-            </h3>
-            <div class="item-list clearfix" :style="{display:currentIndex===index?'block':'none'}">
-              <div class="subitem" v-for="c2 in c1.categoryChild" :key="c2.categoryId">
-                <dl class="fore">
-                  <dt>
-                    <a href="">{{ c2.categoryName }}</a>
-                  </dt>
-                  <dd>
-                    <em v-for="c3 in c2.categoryChild" :key="c3.categoryId">
-                      <a href="">{{ c3.categoryName }}</a>
-                    </em>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -48,15 +63,17 @@ export default {
   name: "TypeNav",
   data() {
     return {
-      currentIndex: -1
+      currentIndex: -1,
+      show: true
     };
   },
   // 挂载完毕
   mounted() {
-    // 具有命名空间的写法, 需开启 namespaced:true,
-    this.$store.dispatch('Home/categoryList')
-    // 常规写法
-    // this.$store.dispatch('categoryList')
+    // 组件挂载完毕, show = false
+    // 如果不是home路由组件, 则不显示
+    if (this.$route.path !== '/home') {
+      this.show = false
+    }
   },
   computed: {
     // 具有命名空间的写法, 需开启 namespaced:true,
@@ -71,10 +88,40 @@ export default {
     // 节流 lodash
     changeIndex: throttle(function (index) {
       this.currentIndex = index;
-    }, 50),
+    }, 20),
+    enterShow() {
+      this.show = true
+    },
     leaveIndex() {
       this.currentIndex = -1;
-    }
+      if (this.$route.path !== '/home') {
+        this.show = false
+      }
+    },
+    goSearch(event) {
+      // 使用编程式导航 + 事件委派
+      console.log(event.target.dataset);
+      let {categoryname, category1id, category2id, category3id} = event.target.dataset;
+      if (categoryname) {
+        // 路由跳转的参数
+        let location = {name: "search"};
+        let query = {categoryName: categoryname}
+        if (category1id) {
+          query.category1Id = category1id
+        } else if (category2id) {
+          query.category2Id = category2id
+        } else if (category3id) {
+          query.category3Id = category3id
+        }
+        // 整理完参数
+        // 如果路由跳转的时候，带有params参数，就同时携带过去
+        if (this.$route.params) {
+          location.params = this.$route.params
+          location.query = query
+          this.$router.push(location)
+        }
+      }
+    },
   }
 }
 </script>
@@ -116,7 +163,6 @@ export default {
       top: 45px;
       width: 210px;
       height: 461px;
-      position: absolute;
       background: #fafafa;
       z-index: 999;
 
@@ -201,6 +247,16 @@ export default {
           background: skyblue;
         }
       }
+    }
+    // 过渡动画开始
+    .sort-enter {
+      height: 0;
+    }
+    .sort-enter-to {
+      height: 461px;
+    }
+    .sort-enter-active {
+      transition: all 0.25s linear;
     }
   }
 }

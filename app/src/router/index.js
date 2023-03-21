@@ -45,7 +45,7 @@ export default new VueRouter({
         },
         {
             name: 'search',
-            path: '/search/:keyword',
+            path: '/search/:keyword?',
             component: Search,
             meta: {
                 showFooter: true
@@ -53,7 +53,8 @@ export default new VueRouter({
             //props的第三种写法，值为函数
             props($route){
                 return {
-                    keyword:$route.query.keyword,
+                    categoryName:$route.query.categoryName,
+                    category1Id:$route.query.category1Id,
                 }
             }
         },

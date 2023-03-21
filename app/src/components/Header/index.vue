@@ -50,15 +50,13 @@ export default {
   },
   methods: {
     goSearch() {
-      this.$router.push({
-        name: "search",
-        params: {
-          keyword: this.keyword
-        },
-        query: {
-          keyword: this.keyword
-        }
-      })
+      // 如果有query参数, 则需要将query参数传递给search组件
+      if (this.$route.query) {
+        let location = {name: "search", params: {keyword: this.keyword || undefined}};
+        location.query = this.$route.query;
+        this.$router.push(location);
+      }
+
     }
   }
 }
